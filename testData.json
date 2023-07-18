@@ -1,0 +1,13 @@
+{
+    "coordinatorPrivateKey":"0xb239d595137590b5c6331a8ec9798e56bc8cd5e5028a2c3e6a88bc5a16ad5a70",
+    "coordinatorPublicKey":"0xf86D3359ed9047662b1CF404Ac639E0742a483c2",
+
+    "alicePublicKey":"0x93beB904Abf2B2E6B640E4a178103454162B3030",
+    "alicePrivateKey":"0x184c962465a9b8a2aedde6013734b199a5bc7d4ee6cd1a0fbcd11716a34e3132",
+    
+    "bobPublicKey":"0xA900c63e2807fA2b3aD3C10fa6c4406424B71fbA",
+    "bobPrivateKey":"0xa8f74ac88b72991076d2a5df210ddc292ccdf344244d39b0c0d16d0cdea9c10f",
+
+    "WETH":"0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+    
+}

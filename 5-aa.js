@@ -21,6 +21,7 @@ const wethContract = new web3.eth.Contract(wethAbi, WETH);
 const simpleAccountABI =  require('./SimpleAccount.json');
 
 const payMasterAddress =  deployData.verifyingPaymasterAddress ;
+// const payMasterAbi = require('./build/contracts/VerifyingPaymaster.json') ;
 const payMasterAbi = require('./build/contracts/VerifyingPaymaster.json') ;
 const payMasterContract = new web3.eth.Contract(payMasterAbi.abi, payMasterAddress);
 const MOCK_VALID_UNTIL = '0x00000000deadbeef' ;
@@ -42,11 +43,11 @@ var callData = paymasterAndData = '0x' ;
 async function getBalance(){
 
     console.log(`Alice ETH Balance ${web3.utils.fromWei(await web3.eth.getBalance(alicePublicKey))}`) ;
-    console.log(`Alice sender wallet ETH Balance ${web3.utils.fromWei(await web3.eth.getBalance(walletOwner))}`) ;
+    console.log(`Alice sender wallet ${walletOwner} ETH Balance ${web3.utils.fromWei(await web3.eth.getBalance(walletOwner))}`) ;
     console.log(`Paymaster ETH Balance ${web3.utils.fromWei(await payMasterContract.methods.getDeposit().call())}`) ;
 
     console.log(`Alice WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(alicePublicKey).call())}`) ;
-    console.log(`Alice sender wallet WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(walletOwner).call())}`) ;
+    console.log(`Alice sender wallet ${walletOwner}  WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(walletOwner).call())}`) ;
     console.log(`Bob WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(bobPublicKey).call())}`) ;
 
 }
@@ -80,8 +81,9 @@ async function executeOnChainTransaction(ethervalue, callData , to, signPrivateK
 
 async function composeInitCode() {
 
-    const encodedWalletCreateABI = new ethers.utils.Interface(simpleAccountFactoryABI).encodeFunctionData("createAccount", [alicePublicKey,salt]);
-    initCode =  hexConcat([simpleAccountFactoryAddress,encodedWalletCreateABI]) ;
+    const walletCreateABI =  simpleAccountFactoryContract.methods.createAccount(alicePublicKey,salt).encodeABI();
+    initCode =  hexConcat([simpleAccountFactoryAddress,walletCreateABI]) ;
+
 }
 
 async function composePaymasterAndData(ops){
@@ -178,7 +180,7 @@ async function executeHandleOps(initCode, callData, viaPaymaster) {
     const signedTx = await web3.eth.accounts.signTransaction(handleOpsops, coordinatorPrivateKey);
     await web3.eth.sendSignedTransaction(signedTx.rawTransaction, function (error, hash) {
         if (!error) { console.log("Handleops Success --> ", hash); }
-        else { console.log("Handleops Erro --> ", error) }
+        else { console.log("Handleops Error --> ", error) }
     });
 }
 
@@ -192,15 +194,19 @@ async function init() {
     
     await composeWETHTransferCallData();
 
-    await executeHandleOps(initCode,'0x', false) ;
+    // await executeHandleOps(initCode,'0x', false) ;
 
-    // await executeHandleOps(initCode,'0x', true) ;
+    await getBalance() ;
+
+    await executeHandleOps(initCode,'0x', true) ;
     
     // await executeHandleOps('0x',callData, false) ;
 
-    await composeWETHTransferCallData();
+    // await composeWETHTransferCallData();
+    
+    // await getBalance() ;
 
-    await executeHandleOps('0x',callData, true) ;
+    // await executeHandleOps('0x',callData, true) ;
 
     await getBalance() ;
 

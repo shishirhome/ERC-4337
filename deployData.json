@@ -1,5 +1,4 @@
 {
-    "testContractAddress": "0x45484b079EeF728f601c7595e8D45BFA98d1EC4E",
-    "verifyingPaymasterAddress": "0x15EEa2576EEf42987af7dcc17FCcA492012DF9C4",
-    "depositPaymasterAddress": "0xaA962600055530A34023F4cf35e87312882bcE68"
+    "verifyingPaymasterAddress": "0x0a7e36e14fdC6787A6668d057DBAE718bBFdA8f6",
+    "depositPaymasterAddress": "0x8015c97Fc294919d38c00A2BE6f722ca3f38ed98"
 }

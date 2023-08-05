@@ -6,7 +6,7 @@ const { arrayify, keccak256, defaultAbiCoder, hexConcat } = require('ethers/lib/
 const Web3 = require('web3');
 const web3 = new Web3('http://127.0.0.1:8545');
 const provider = new ethers.providers.JsonRpcProvider("http://localhost:8545", 1);
-const salt = 2 ;
+const salt = 0 ;
 const testData =  require('./testData.json') ;
 
 const entryPoint =  require('./EntryPoint.json');
@@ -21,7 +21,6 @@ const wethContract = new web3.eth.Contract(wethAbi, WETH);
 const simpleAccountABI =  require('./SimpleAccount.json');
 
 const payMasterAddress =  deployData.verifyingPaymasterAddress ;
-// const payMasterAbi = require('./build/contracts/VerifyingPaymaster.json') ;
 const payMasterAbi = require('./build/contracts/VerifyingPaymaster.json') ;
 const payMasterContract = new web3.eth.Contract(payMasterAbi.abi, payMasterAddress);
 const MOCK_VALID_UNTIL = '0x00000000deadbeef' ;
@@ -39,6 +38,13 @@ var alicePublicKey = bobPublicKey = '0x' ;
 var alicePrivateKey = bobPrivateKey = '0x' ;
 
 var callData = paymasterAndData = '0x' ;
+const DAI = testData.DAI ;
+const EXPAND_API_KEY = testData.EXPAND_API_KEY ;
+const EXPAND_BASE_URL = testData.EXPAND_BASE_URL ;
+const axios = require('axios');
+
+const daiAbi = require('./weth.json');
+const daiContract = new web3.eth.Contract(wethAbi, DAI);
 
 async function getBalance(){
 
@@ -48,7 +54,9 @@ async function getBalance(){
 
     console.log(`Alice WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(alicePublicKey).call())}`) ;
     console.log(`Alice sender wallet ${walletOwner}  WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(walletOwner).call())}`) ;
+    
     console.log(`Bob WETH Balance ${web3.utils.fromWei(await wethContract.methods.balanceOf(bobPublicKey).call())}`) ;
+    console.log(`Bob DAI Balance ${web3.utils.fromWei(await daiContract.methods.balanceOf(bobPublicKey).call())}`) ;
 
 }
 
@@ -184,23 +192,51 @@ async function executeHandleOps(initCode, callData, viaPaymaster) {
     });
 }
 
+async function composeV3SwapCallData(){
+    const config = {
+        dexId: '1300',
+        amountIn: web3.utils.toWei('0.04','ether'),
+        amountOutMin: '0',
+        path: [ WETH, DAI ],
+        to: bobPublicKey,
+        deadline: Date.now() + 60*60*20,
+        from: alicePublicKey,
+        gas: '229880'
+    };
+
+    const axiosInstance = new axios.create({
+        baseURL: EXPAND_BASE_URL,
+        timeout: 5000,
+        headers: {'X-API-KEY': EXPAND_API_KEY},
+      });
+    
+    const response = await axiosInstance.post('/dex/swap/', config);
+    callData = response.data.data.data ;
+
+}
+
 async function init() {
 
     await initAddresses() ;
+
+    // await executeOnChainTransaction('100','0x', alicePublicKey, coordinatorPrivateKey) ;
+    // await executeOnChainTransaction('0.2','0x', coordinatorPublicKey, alicePrivateKey) ;
     
     await composeInitCode();
 
-    await fundContractsAndAddresses() ;
+    // await fundContractsAndAddresses() ;
     
-    await composeWETHTransferCallData();
+    // await composeWETHTransferCallData();
+
+    // await composeV3SwapCallData();
 
     // await executeHandleOps(initCode,'0x', false) ;
 
-    await getBalance() ;
+    // await getBalance() ;
 
-    await executeHandleOps(initCode,'0x', true) ;
+    // await executeHandleOps(initCode,'0x', true) ;
     
-    // await executeHandleOps('0x',callData, false) ;
+    await executeHandleOps('0x',callData, false) ;
 
     // await composeWETHTransferCallData();
     
